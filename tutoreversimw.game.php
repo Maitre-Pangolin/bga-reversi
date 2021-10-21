@@ -133,7 +133,7 @@ class tutoReversiMw extends Table
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
         $sql = "SELECT player_id id, player_score score FROM player ";
         $result['players'] = self::getCollectionFromDb( $sql );
-        
+
         $result['board'] = self::getObjectListFromDB( "SELECT board_x x, board_y y, board_player player
         FROM board
         WHERE board_player IS NOT NULL" );
@@ -164,7 +164,7 @@ class tutoReversiMw extends Table
 //////////// Utility functions
 ////////////    
 
-    /* function getTurnedOverDiscs( $x, $y, $player, $board )
+     function getTurnedOverDiscs( $x, $y, $player, $board )
     {
         $turnedOverDiscs = array();
         
@@ -261,8 +261,8 @@ class tutoReversiMw extends Table
         return $result;
     }
 
-        In this space, you can put any utility methods useful for your game logic
-    */
+      //  In this space, you can put any utility methods useful for your game logic
+    
 
 
 
@@ -311,6 +311,12 @@ class tutoReversiMw extends Table
         These methods function is to return some additional information that is specific to the current
         game state.
     */
+    function argPlayerTurn()
+    {
+        return array(
+            'possibleMoves' => self::getPossibleMoves( self::getActivePlayerId() )
+        );
+    }
 
 /*
 
@@ -337,8 +343,9 @@ class tutoReversiMw extends Table
         Here, you can create methods defined as "game state actions" (see "action" property in states.inc.php).
         The action method of state X is called everytime the current game state is set to X.
     */
-    
+    function stNextPlayer(){}
     /*
+    
     
     Example for game state "MyGameState":
 
