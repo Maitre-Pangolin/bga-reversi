@@ -75,7 +75,6 @@
   width: 62px;
   height: 62px;
   position: absolute;
-  background-color: red;
 }
 
 .token {
@@ -89,4 +88,10 @@
 }
 .tokencolor_000000 {
   background-position: -56px 0px;
+}
+
+.possibleMove {
+  background-color: white;
+  opacity: 0.2;
+  cursor: pointer;
 }

@@ -47,8 +47,13 @@ define(["dojo", "dojo/_base/declare", "ebg/core/gamegui", "ebg/counter"], functi
         var player = gamedatas.players[player_id];
         // TODO: Setting up players boards if needed
       }
-      this.addTokenOnBoard(2, 2, Object.keys(gamedatas.players)[0]);
-      this.addTokenOnBoard(1, 2, Object.keys(gamedatas.players)[1]);
+      for (var i in gamedatas.board) {
+        var square = gamedatas.board[i];
+
+        if (square.player !== null) {
+          this.addTokenOnBoard(square.x, square.y, square.player);
+        }
+      }
       // TODO: Set up your game interface here, according to "gamedatas"
 
       // Setup game notifications to handle (see "setupNotifications" method below)

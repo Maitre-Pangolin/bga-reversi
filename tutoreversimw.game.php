@@ -76,7 +76,7 @@ class tutoReversiMw extends Table
         self::DbQuery( $sql );
         //self::reattributeColorsBasedOnPreferences( $players, $gameinfos['player_colors'] );
         self::reloadPlayersBasicInfos();
-        $default_colors = array( "ffffff", "000000","ffffff", "000000" );
+
         
         /************ Start the game initialization *****/
 
@@ -89,7 +89,24 @@ class tutoReversiMw extends Table
         //self::initStat( 'player', 'player_teststat1', 0 );  // Init a player statistics (for all players)
 
         // TODO: setup the initial game situation here
-       
+        $sql = "INSERT INTO board (board_x,board_y,board_player) VALUES ";
+        $sql_values = array();
+        list( $blackplayer_id, $whiteplayer_id ) = array_keys( $players );
+        for( $x=1; $x<=8; $x++ )
+        {
+            for( $y=1; $y<=8; $y++ )
+            {
+                $token_value = "NULL";
+                if( ($x==4 && $y==4) || ($x==5 && $y==5) )  // Initial positions of white player
+                    $token_value = "'$whiteplayer_id'";
+                else if( ($x==4 && $y==5) || ($x==5 && $y==4) )  // Initial positions of black player
+                    $token_value = "'$blackplayer_id'";
+                    
+                $sql_values[] = "('$x','$y',$token_value)";
+            }
+        }
+        $sql .= implode( ',', $sql_values );
+        self::DbQuery( $sql );
 
         // Activate first player (which is in general a good idea :) )
         $this->activeNextPlayer();
@@ -116,7 +133,10 @@ class tutoReversiMw extends Table
         // Note: you can retrieve some extra field you added for "player" table in "dbmodel.sql" if you need it.
         $sql = "SELECT player_id id, player_score score FROM player ";
         $result['players'] = self::getCollectionFromDb( $sql );
-  
+        
+        $result['board'] = self::getObjectListFromDB( "SELECT board_x x, board_y y, board_player player
+        FROM board
+        WHERE board_player IS NOT NULL" );
         // TODO: Gather all information about current game situation (visible by player $current_player_id).
   
         return $result;
@@ -144,7 +164,103 @@ class tutoReversiMw extends Table
 //////////// Utility functions
 ////////////    
 
-    /*
+    /* function getTurnedOverDiscs( $x, $y, $player, $board )
+    {
+        $turnedOverDiscs = array();
+        
+        if( $board[ $x ][ $y ] === null ) // If there is already a disc on this place, this can't be a valid move
+        {
+            // For each directions...
+            $directions = array(
+                array( -1,-1 ), array( -1,0 ), array( -1, 1 ), array( 0, -1),
+                array( 0,1 ), array( 1,-1), array( 1,0 ), array( 1, 1 )
+            );
+            
+            foreach( $directions as $direction )
+            {
+                // Starting from the square we want to place a disc...
+                $current_x = $x;
+                $current_y = $y;
+                $bContinue = true;
+                $mayBeTurnedOver = array();
+
+                while( $bContinue )
+                {
+                    // Go to the next square in this direction
+                    $current_x += $direction[0];
+                    $current_y += $direction[1];
+                    
+                    if( $current_x<1 || $current_x>8 || $current_y<1 || $current_y>8 )
+                        $bContinue = false; // Out of the board => stop here for this direction
+                    else if( $board[ $current_x ][ $current_y ] === null )
+                        $bContinue = false; // An empty square => stop here for this direction
+                    else if( $board[ $current_x ][ $current_y ] != $player )
+                    {
+                        // There is a disc from our opponent on this square
+                        // => add it to the list of the "may be turned over", and continue on this direction
+                        $mayBeTurnedOver[] = array( 'x' => $current_x, 'y' => $current_y );
+                    }
+                    else if( $board[ $current_x ][ $current_y ] == $player )
+                    {
+                        // This is one of our disc
+                        
+                        if( count( $mayBeTurnedOver ) == 0 )
+                        {
+                            // There is no disc to be turned over between our 2 discs => stop here for this direction
+                            $bContinue = false;
+                        }
+                        else
+                        {
+                            // We found some disc to be turned over between our 2 discs
+                            // => add them to the result and stop here for this direction
+                            $turnedOverDiscs = array_merge( $turnedOverDiscs, $mayBeTurnedOver );
+                            $bContinue = false;
+                        }
+                    }
+                }
+            }
+        }
+        
+        return $turnedOverDiscs;
+    }
+    
+    // Get the complete board with a double associative array
+    function getBoard()
+    {
+        return self::getDoubleKeyCollectionFromDB( "SELECT board_x x, board_y y, board_player player
+                                                       FROM board", true );
+    }
+
+    // Get the list of possible moves (x => y => true)
+    function getPossibleMoves( $player_id )
+    {
+        $result = array();
+        
+        $board = self::getBoard();
+        
+        for( $x=1; $x<=8; $x++ )
+        {
+            for( $y=1; $y<=8; $y++ )
+            {
+                $returned = self::getTurnedOverDiscs( $x, $y, $player_id, $board );
+                if( count( $returned ) == 0 )
+                {
+                    // No discs returned => not a possible move
+                }
+                else
+                {
+                    // Okay => set this coordinate to "true"
+                    if( ! isset( $result[$x] ) )
+                        $result[$x] = array();
+                        
+                    $result[$x][$y] = true;
+                }
+            }
+        }
+                
+        return $result;
+    }
+
         In this space, you can put any utility methods useful for your game logic
     */
 
@@ -196,8 +312,8 @@ class tutoReversiMw extends Table
         game state.
     */
 
-    /*
-    
+/*
+
     Example for game state "MyGameState":
     
     function argMyGameState()
