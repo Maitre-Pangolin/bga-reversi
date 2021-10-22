@@ -24,7 +24,7 @@
 
     Please REMOVE this comment before publishing your game on BGA
 -->
-
+<P>jE SUIS La lucie</P>
 <div id="board">
     <!-- BEGIN square -->
     <div id="square_{X}_{Y}" class="square" style="left: {LEFT}px; top: {TOP}px;"></div>
